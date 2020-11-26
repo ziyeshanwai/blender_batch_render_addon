@@ -15,12 +15,12 @@ import os
  
  
     #This is the Main Panel (Parent of Panel A and B)
-class MainPanel(bpy.types.Panel):
+class MAINUI(bpy.types.Panel):
     bl_label = "Batch Export Tool"
-    bl_idname = "VIEW_PT_MainPanel"
+    bl_idname = "VIEW_PT_MainUI"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Batch Render'
+    bl_category = 'Batch Export'
    
     def draw(self, context):
         layout = self.layout
@@ -39,6 +39,7 @@ class WM_OT_batch_export_abc(bpy.types.Operator):
     
     input_dir = bpy.props.StringProperty(name= "input dir", default= "")
     output_dir = bpy.props.StringProperty(name= "output dir:", default= "")
+    scale = bpy.props.FloatProperty(name="scale", description="scale", default=1.0, min=0.01, max=3.0)
     
     def execute(self, context):
         
@@ -47,14 +48,16 @@ class WM_OT_batch_export_abc(bpy.types.Operator):
         output_dir = self.output_dir
         print("output_dir is {}".format(output_dir))
         names = os.listdir(input_dir)
+        number = 0
         for name in names:
             input_path = os.path.join(input_dir, name)
             self.import_fbx(input_path)
             output_path = os.path.join(output_dir, name[:-3]+'abc')
             self.export(output_path)
             print("-" * 100)
+            number += 1
             print("{} export finish".format(name))
-            
+            print("{}/{}".format(number, len(names)))
         return {'FINISHED'}
     
     def invoke(self, context, event):
@@ -68,7 +71,7 @@ class WM_OT_batch_export_abc(bpy.types.Operator):
         bpy.context.scene.frame_end = end_number
         
     def import_fbx(self, file):
-        bpy.ops.import_scene.fbx(filepath=file, global_scale=0.01) # bas
+        bpy.ops.import_scene.fbx(filepath=file, global_scale=self.scale) # bas
         bpy.context.selected_objects[0].name ='head_geo'
         
     def export(self, output_path):
@@ -80,6 +83,7 @@ class WM_OT_batch_export_abc(bpy.types.Operator):
         bpy.data.objects['head_geo'].select_set(True)
         bpy.ops.wm.alembic_export(filepath=output_path, selected=True)
         bpy.ops.object.delete(use_global=False)
+        print("export {}".format(output_path))
         
  
 class WM_OT_batch_render(bpy.types.Operator):
@@ -89,8 +93,7 @@ class WM_OT_batch_render(bpy.types.Operator):
    
     input_dir = bpy.props.StringProperty(name= "input dir", default= "")
     output_dir = bpy.props.StringProperty(name= "output dir:", default= "")
-   
-   
+    
     def execute(self, context):
        
         input_dir = self.input_dir
@@ -99,13 +102,16 @@ class WM_OT_batch_render(bpy.types.Operator):
         print("output_dir is {}".format(output_dir))
         self.ini_render_settings()
         names = os.listdir(input_dir)
+        number = 0
         for name in names:
             input_path = os.path.join(input_dir, name)
             self.import_fbx(input_path)
             output_path = os.path.join(output_dir, name[:-3]+'mp4')
             self.render_animation(output_path)
+            number += 1
             print("-" * 100)
             print("{} render finish".format(name))
+            print("{}/{}".format(number, len(names)))
        
         return {'FINISHED'}
    
@@ -167,13 +173,13 @@ class WM_OT_batch_render(bpy.types.Operator):
            
         #Here we are Registering the Classes        
 def register():
-    bpy.utils.register_class(MainPanel)
+    bpy.utils.register_class(MAINUI)
     bpy.utils.register_class(WM_OT_batch_render)
     bpy.utils.register_class(WM_OT_batch_export_abc)
     
     #Here we are UnRegistering the Classes    
 def unregister():
-    bpy.utils.unregister_class(MainPanel)
+    bpy.utils.unregister_class(MAINUI)
     bpy.utils.unregister_class(WM_OT_batch_render)
     bpy.utils.unregister_class(WM_OT_batch_export_abc)
        
