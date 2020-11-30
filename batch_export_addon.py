@@ -50,6 +50,7 @@ class WM_OT_batch_export_abc(bpy.types.Operator):
         output_dir = self.output_dir
         print("output_dir is {}".format(output_dir))
         names = os.listdir(input_dir)
+        names = list(filter(lambda x: x.endswith(".fbx"), names))
         number = 0
         for name in names:
             input_path = os.path.join(input_dir, name)
@@ -104,6 +105,7 @@ class WM_OT_batch_render(bpy.types.Operator):
         print("output_dir is {}".format(output_dir))
         self.ini_render_settings()
         names = os.listdir(input_dir)
+        names = list(filter(lambda x: x.endswith(".fbx"), names))
         number = 0
         for name in names:
             input_path = os.path.join(input_dir, name)
@@ -150,7 +152,7 @@ class WM_OT_batch_render(bpy.types.Operator):
         context['area'] = area
         context['region'] = region
         context['space_data'] = space
-        
+        bpy.data.objects['head_geo'].select_set(True)
         bpy.ops.view3d.view_selected(context)
         bpy.ops.view3d.view_axis(context, type='FRONT')
         context['space_data'].overlay.show_overlays = False
@@ -189,6 +191,7 @@ class WM_OT_batch_render_bone_animation(bpy.types.Operator):
         print("output_dir is {}".format(output_dir))
         self.ini_render_settings()
         names = os.listdir(input_dir)
+        names = list(filter(lambda x: x.endswith(".fbx"), names))
         number = 0
         for name in names:
             input_path = os.path.join(input_dir, name)
