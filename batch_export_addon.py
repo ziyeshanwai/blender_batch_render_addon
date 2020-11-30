@@ -27,7 +27,9 @@ class MAINUI(bpy.types.Panel):
         row = layout.row()
         row.label(text= "Batch ExPORT TOOL", icon= 'OBJECT_ORIGIN')
         row = layout.row()
-        row.operator("wm.batch_render", icon= 'CUBE', text= "batch render")
+        row.operator("wm.batch_render", icon= 'CUBE', text= "batch render aifa animaition")
+        row = layout.row()
+        row.operator("wm.batch_render_bone_animation", icon= 'CUBE', text= "batch render bone animaition")
         row = layout.row()
         row.operator("wm.batch_export_abc", icon= 'CUBE', text= "batch export abc")
         
@@ -169,19 +171,103 @@ class WM_OT_batch_render(bpy.types.Operator):
     def import_fbx(self, file):
         bpy.ops.import_scene.fbx(filepath=file, global_scale=0.01) # bas
         bpy.context.selected_objects[0].name ='head_geo'
+ 
+        
+class WM_OT_batch_render_bone_animation(bpy.types.Operator):
+    
+    bl_label = "batch export render box"
+    bl_idname = "wm.batch_render_bone_animation"
+   
+    input_dir = bpy.props.StringProperty(name= "input dir", default= "")
+    output_dir = bpy.props.StringProperty(name= "output dir:", default= "")
+    
+    def execute(self, context):
        
+        input_dir = self.input_dir
+        print("input_dir is {}".format(input_dir))
+        output_dir = self.output_dir
+        print("output_dir is {}".format(output_dir))
+        self.ini_render_settings()
+        names = os.listdir(input_dir)
+        number = 0
+        for name in names:
+            input_path = os.path.join(input_dir, name)
+            self.import_fbx(input_path)
+            output_path = os.path.join(output_dir, name[:-3]+'mp4')
+            self.render_animation(output_path)
+            number += 1
+            print("-" * 100)
+            print("{} render finish".format(name))
+            print("{}/{}".format(number, len(names)))
+       
+        return {'FINISHED'}
+   
+    def invoke(self, context, event):
+       
+        return context.window_manager.invoke_props_dialog(self)
+ 
+    def ini_render_settings(self):
+        print("initial render setting")
+        bpy.context.scene.unit_settings.scale_length = 0.01
+        bpy.context.scene.render.image_settings.file_format = 'FFMPEG'
+        bpy.context.scene.render.ffmpeg.format = 'MPEG4'
+        bpy.context.scene.render.ffmpeg.constant_rate_factor = 'MEDIUM'
+        bpy.context.scene.render.ffmpeg.codec = 'H264'
+        bpy.context.scene.render.fps = 60
+
+    
+    def set_frame_number(self):
+        start_number = bpy.data.objects['head_geo_rig'].animation_data.action.frame_range[0]
+        end_number = bpy.data.objects['head_geo_rig'].animation_data.action.frame_range[1]
+        bpy.context.scene.frame_start = start_number
+        bpy.context.scene.frame_end = end_number
+         
+    def adjust_view(self):
+        for area in bpy.context.screen.areas:
+            if area.type == "VIEW_3D":
+                break
+
+        for region in area.regions:
+            if region.type == "WINDOW":
+                break
+        space = area.spaces[0]
+        context = bpy.context.copy()
+        context['area'] = area
+        context['region'] = region
+        context['space_data'] = space
+        bpy.data.objects['head_geo_rig'].select_set(False)
+        bpy.data.objects['head_geo'].select_set(True)
+        bpy.ops.view3d.view_selected(context)
+        bpy.ops.view3d.view_axis(context, type='FRONT')
+        context['space_data'].overlay.show_overlays = False
+
+    def render_animation(self, output_path):
+        self.set_frame_number()
+        bpy.context.scene.render.filepath = output_path
+        self.adjust_view()
+        bpy.ops.render.opengl(animation=True)
+        bpy.data.objects['head_geo_rig'].select_set(True)
+        bpy.ops.object.delete(use_global=False)
+
+
+    def import_fbx(self, file):
+        bpy.ops.import_scene.fbx(filepath=file, global_scale=0.01) # bas
+        bpy.context.selected_objects[0].name ='head_geo_rig'
+
            
         #Here we are Registering the Classes        
 def register():
     bpy.utils.register_class(MAINUI)
     bpy.utils.register_class(WM_OT_batch_render)
     bpy.utils.register_class(WM_OT_batch_export_abc)
+    bpy.utils.register_class(WM_OT_batch_render_bone_animation)
     
     #Here we are UnRegistering the Classes    
 def unregister():
     bpy.utils.unregister_class(MAINUI)
     bpy.utils.unregister_class(WM_OT_batch_render)
     bpy.utils.unregister_class(WM_OT_batch_export_abc)
+    bpy.utils.unregister_class(WM_OT_batch_render_bone_animation)
        
     #This is required in order for the script to run in the text editor    
 if __name__ == "__main__":
