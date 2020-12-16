@@ -41,7 +41,7 @@ class WM_OT_batch_export_abc(bpy.types.Operator):
     
     input_dir = bpy.props.StringProperty(name= "input dir", default= "")
     output_dir = bpy.props.StringProperty(name= "output dir:", default= "")
-    scale = bpy.props.FloatProperty(name="scale", description="scale", default=1.0, min=0.01, max=3.0)
+    scale = bpy.props.FloatProperty(name="scale", description="scale", default=1.0, min=0.01, max=100.0)
     
     def execute(self, context):
         
