@@ -155,7 +155,7 @@ class WM_OT_batch_render(bpy.types.Operator):
         bpy.data.objects['head_geo'].select_set(True)
         bpy.ops.view3d.view_selected(context)
         bpy.ops.view3d.view_axis(context, type='FRONT')
-        context['space_data'].overlay.show_overlays = False
+        #context['space_data'].overlay.show_overlays = False
 
     def render_animation(self, output_path):
         
@@ -242,7 +242,7 @@ class WM_OT_batch_render_bone_animation(bpy.types.Operator):
         bpy.data.objects['head_geo'].select_set(True)
         bpy.ops.view3d.view_selected(context)
         bpy.ops.view3d.view_axis(context, type='FRONT')
-        context['space_data'].overlay.show_overlays = False
+        #context['space_data'].overlay.show_overlays = False
 
     def render_animation(self, output_path):
         self.set_frame_number()
